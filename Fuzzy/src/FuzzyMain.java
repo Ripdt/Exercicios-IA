@@ -28,6 +28,13 @@ public class FuzzyMain {
 		grupoRating.add(new VariavelFuzzy("B",20,40,45,50));
 		grupoRating.add(new VariavelFuzzy("MB",40,48,50,50));
 		
+		GrupoVariaveis grupoVotos = new GrupoVariaveis();
+		grupoVotos.add(new VariavelFuzzy("V_MPV",0,0,10,20));
+		grupoVotos.add(new VariavelFuzzy("V_PV",10,20,50,60));
+		grupoVotos.add(new VariavelFuzzy("V_MEV",40,80,200,300));
+		grupoVotos.add(new VariavelFuzzy("V_BAV",200,300,500,1000));
+		grupoVotos.add(new VariavelFuzzy("V_MUV",400,500,3200,3200));
+		
 		GrupoVariaveis grupoAtratividade = new GrupoVariaveis();
 		grupoRating.add(new VariavelFuzzy("NA",0,0,3,6));
 		grupoRating.add(new VariavelFuzzy("A",5,7,8,10));
@@ -55,7 +62,10 @@ public class FuzzyMain {
 				float rating = Float.parseFloat(spl[5]);
 				grupoRating.fuzzifica(rating, asVariaveis);
 				
-				System.out.println(""+spl[2]+" custodinheiro "+custodinheiro+" rating "+rating);
+				float votos = Float.parseFloat(spl[8]);
+				grupoVotos.fuzzifica(votos, asVariaveis);
+				
+				System.out.println(""+spl[2]+" - custodinheiro "+custodinheiro+" rating "+rating+" votos "+votos);
 				//System.out.println("rating "+rating+" -> "+asVariaveis);
 				
 				// Barato e B -> A
@@ -77,6 +87,14 @@ public class FuzzyMain {
 				rodaRegraE(asVariaveis,"Muito Caro","R","NA");
 				rodaRegraE(asVariaveis,"Muito Caro","B","NA");
 				rodaRegraE(asVariaveis,"Muito Caro","MB","A");
+				
+				rodaRegraE(asVariaveis,"MA","V_MPV","NA");
+				rodaRegraE(asVariaveis,"MA","V_PV","A");
+				rodaRegraE(asVariaveis,"MA","V_MEV","A");
+				
+				rodaRegraE(asVariaveis,"A","V_MPV","NA");
+				rodaRegraE(asVariaveis,"A","V_PV","NA");
+				rodaRegraE(asVariaveis,"A","V_MEV","NA");
 				
 				float NA = asVariaveis.get("NA");
 				float A = asVariaveis.get("A");
