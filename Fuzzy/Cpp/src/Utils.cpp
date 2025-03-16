@@ -5,7 +5,8 @@
 #include <sstream>
 
 std::vector<std::vector<std::string>> Utils::readCSV(
-    const std::string &filename)
+    const std::string &filename
+)
 {
     std::vector<std::vector<std::string>> data;
     std::ifstream file(filename);
@@ -33,4 +34,24 @@ std::vector<std::vector<std::string>> Utils::readCSV(
 
     file.close();
     return data;
+}
+
+void Utils::rightPadTo(
+  std::string& str,
+  const size_t num,
+  const char paddingChar
+)
+{
+  if (num > str.size())
+    str.insert(0, num - str.size(), paddingChar);
+}
+
+void Utils::leftPadTo(
+  std::string& str,
+  const size_t num,
+  const char paddingChar
+)
+{
+  if (num > str.size())
+    str.insert(str.size(), num - str.size(), paddingChar);
 }

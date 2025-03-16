@@ -7,91 +7,89 @@
 
 void RestaurantRecommendation::fuzzyfication() const
 {
-    VariableGroup grupoPreco;
-    grupoPreco.add(FuzzyVariable("Muito Barato", 0, 0, 10, 20));
-    grupoPreco.add(FuzzyVariable("Barato", 10, 20, 30, 60));
-    grupoPreco.add(FuzzyVariable("Custo Medio", 20, 40, 50, 70));
-    grupoPreco.add(FuzzyVariable("Caro", 40, 60, 70, 120));
-    grupoPreco.add(FuzzyVariable("Muito Caro", 70, 110, 500, 500));
+  VariableGroup costGroup;
+  costGroup.add(FuzzyVariable("Very Cheap", 0, 0, 10, 20));
+  costGroup.add(FuzzyVariable("Cheap", 10, 20, 30, 60));
+  costGroup.add(FuzzyVariable("Medium", 20, 40, 50, 70));
+  costGroup.add(FuzzyVariable("Expensive", 40, 60, 70, 120));
+  costGroup.add(FuzzyVariable("Very Expensive", 70, 110, 500, 500));
 
-    VariableGroup grupoRating;
-    grupoRating.add(FuzzyVariable("MR", 0, 0, 10, 20));
-    grupoRating.add(FuzzyVariable("R", 10, 20, 30, 40));
-    grupoRating.add(FuzzyVariable("B", 20, 40, 45, 50));
-    grupoRating.add(FuzzyVariable("MB", 40, 48, 50, 50));
+  VariableGroup grupoRating;
+  grupoRating.add(FuzzyVariable("VB", 0, 0, 10, 20));
+  grupoRating.add(FuzzyVariable("B", 10, 20, 30, 40));
+  grupoRating.add(FuzzyVariable("G", 20, 40, 45, 50));
+  grupoRating.add(FuzzyVariable("VG", 40, 48, 50, 50));
 
-    VariableGroup grupoVotos;
-    grupoVotos.add(FuzzyVariable("V_MPV", 0, 0, 10, 20));
-    grupoVotos.add(FuzzyVariable("V_PV", 10, 20, 50, 60));
-    grupoVotos.add(FuzzyVariable("V_MEV", 40, 80, 200, 300));
-    grupoVotos.add(FuzzyVariable("V_BAV", 200, 300, 500, 1000));
-    grupoVotos.add(FuzzyVariable("V_MUV", 400, 500, 3200, 3200));
+  VariableGroup grupoVotos;
+  grupoVotos.add(FuzzyVariable("V_VL", 0, 0, 10, 20));
+  grupoVotos.add(FuzzyVariable("V_L", 10, 20, 50, 60));
+  grupoVotos.add(FuzzyVariable("V_M", 40, 80, 200, 300));
+  grupoVotos.add(FuzzyVariable("V_H", 200, 300, 500, 1000));
+  grupoVotos.add(FuzzyVariable("V_VH", 400, 500, 3200, 3200));
 
-    VariableGroup grupoAtratividade;
-    grupoRating.add(FuzzyVariable("NA", 0, 0, 3, 6));
-    grupoRating.add(FuzzyVariable("A", 5, 7, 8, 10));
-    grupoRating.add(FuzzyVariable("MA", 7, 9, 10, 10));
+  VariableGroup grupoAtratividade;
+  grupoRating.add(FuzzyVariable("NA", 0, 0, 3, 6));
+  grupoRating.add(FuzzyVariable("A", 5, 7, 8, 10));
+  grupoRating.add(FuzzyVariable("VA", 7, 9, 10, 10));
 
-    try
+  try
+  {
+    std::cout << "Nome\t\t\tCozinha\t\t\tCusto\tRating\tVotos\tNA\tA\tMA\tScore" << std::endl;
+    typedef std::vector<std::vector<std::string>> Spreadsheet;
+    const Spreadsheet &spreadsheet = Utils::readCSV("../../restaurantes_filtrados.csv");
+    for (Spreadsheet::const_iterator it = spreadsheet.begin() + 1; it != spreadsheet.end(); ++it)
     {
-      typedef std::vector<std::vector<std::string>> Spreadsheet;
-      const Spreadsheet& spreadsheet = Utils::readCSV("../../restaurantes_filtrados.csv");
-      for (Spreadsheet::const_iterator it = spreadsheet.begin() + 1; it != spreadsheet.end(); ++it)
-      {
-        const std::vector<std::string>& line = *it;
-        std::unordered_map<std::string, float> variables;
+      const std::vector<std::string> &line = *it;
+      std::unordered_map<std::string, float> variables;
 
-        const float cost = std::stof(line[3].c_str());
-        grupoPreco.fuzzyfication(cost, variables);
+      std::string name = line[1].substr(0, 23);
+      Utils::leftPadTo(name, 23);
 
-        const float rating = std::stof(line[5].c_str());
-        grupoRating.fuzzyfication(rating, variables);
+      std::string cuisine = line[2].substr(0, 23);
+      Utils::leftPadTo(cuisine, 23);
 
-        const float votos = std::stof(line[8].c_str());
-        grupoVotos.fuzzyfication(votos, variables);
+      const float cost = std::stof(line[3].substr(0,6).c_str());
+      costGroup.fuzzyfication(cost, variables);
 
-        std::cout << line[2].c_str() << " - custodinheiro " << cost << " rating " << rating << " votos " << votos << std::endl;
+      const float rating = std::stof(line[5].substr(0, 6).c_str());
+      grupoRating.fuzzyfication(rating, variables);
 
-        // Barato e B -> A
-        // Muito Barato e B -> A
-        // Muito Barato e MB -> MA
-        // Barato e MB -> MA
-        // Barato e R -> NA
-        // Muito Barato e R -> A
-        // Muito Barato e MR -> NA
+      const float votos = std::stof(line[8].substr(0, 6).c_str());
+      grupoVotos.fuzzyfication(votos, variables);
 
-        ruleAND(variables, "Barato", "B", "A");
-        ruleAND(variables, "Muito Barato", "B", "A");
-        ruleAND(variables, "Muito Barato", "MB", "MA");
-        ruleAND(variables, "Barato", "MB", "MA");
-        ruleAND(variables, "Barato", "R", "NA");
-        ruleAND(variables, "Muito Barato", "R", "A");
-        ruleAND(variables, "Muito Barato", "MR", "NA");
-        ruleAND(variables, "Muito Caro", "MR", "NA");
-        ruleAND(variables, "Muito Caro", "R", "NA");
-        ruleAND(variables, "Muito Caro", "B", "NA");
-        ruleAND(variables, "Muito Caro", "MB", "A");
+      std::cout << name << "\t" << cuisine << "\t" << cost << "\t" << rating << "\t" << votos << "\t";
 
-        ruleAND(variables, "MA", "V_MPV", "NA");
-        ruleAND(variables, "MA", "V_PV", "A");
-        ruleAND(variables, "MA", "V_MEV", "A");
+      ruleAND(variables, "Cheap", "G", "A");
+      ruleAND(variables, "Very Cheap", "G", "A");
+      ruleAND(variables, "Very Cheap", "VG", "VA");
+      ruleAND(variables, "Cheap", "VG", "VA");
+      ruleAND(variables, "Cheap", "B", "NA");
+      ruleAND(variables, "Very Cheap", "B", "A");
+      ruleAND(variables, "Very Cheap", "VB", "NA");
+      ruleAND(variables, "Very Expensive", "VB", "NA");
+      ruleAND(variables, "Very Expensive", "B", "NA");
+      ruleAND(variables, "Very Expensive", "G", "NA");
+      ruleAND(variables, "Very Expensive", "VG", "A");
 
-        ruleAND(variables, "A", "V_MPV", "NA");
-        ruleAND(variables, "A", "V_PV", "NA");
-        ruleAND(variables, "A", "V_MEV", "NA");
+      ruleAND(variables, "VA", "V_VL", "NA");
+      ruleAND(variables, "VA", "V_L", "A");
+      ruleAND(variables, "VA", "V_M", "A");
 
-        const float NA = variables["NA"];
-        const float A = variables["A"];
-        const float MA = variables["MA"];
+      ruleAND(variables, "A", "V_VL", "NA");
+      ruleAND(variables, "A", "V_L", "NA");
+      ruleAND(variables, "A", "V_M", "NA");
 
-        const float score = (NA * 1.5f + A * 7.0f + MA * 9.5f) / (NA + A + MA);
+      const float NA = variables["NA"];
+      const float A = variables["A"];
+      const float VA = variables["VA"];
 
-        std::cout << "NA " << NA << " A " << A << " MA " << MA << std::endl;
-        std::cout << "\t" << cost << " " << rating << "-> " << score << std::endl;
-      }
+      const float score = (NA * 1.5f + A * 7.0f + VA * 9.5f) / (NA + A + VA);
+
+      std::cout << std::to_string(NA).substr(0,6) << "\t" << std::to_string(A).substr(0, 6) << "\t" << std::to_string(VA).substr(0, 6) << "\t" << score << std::endl;
     }
-    catch (...)
-    {
-        std::cout << "\n\nErro ao ler arquivo\n\n";
-    }
+  }
+  catch (...)
+  {
+    std::cout << "\n\nErro ao ler arquivo\n\n";
+  }
 }
