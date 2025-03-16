@@ -1,2 +1,2 @@
-# Dennis_IA_Itajai
-Repositorio da aula
+# Exercícios IA
+Repositorio da aula de Inteligência Artificial 2025-1 da Universidade do Vale de Itajaí
