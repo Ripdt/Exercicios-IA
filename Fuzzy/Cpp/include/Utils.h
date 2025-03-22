@@ -10,6 +10,11 @@ namespace Utils
     const std::string &filename
   );
 
+  std::vector<std::string> split(
+    const std::string& s,
+    const char delimiter
+  );
+
   void rightPadTo(
     std::string& str,
     const size_t num,
