@@ -54,10 +54,10 @@ void RestaurantRecommendation::fuzzyfication() const
       const float rating = std::stof(line[5].substr(0, 6).c_str());
       grupoRating.fuzzyfication(rating, variables);
 
-      const float votos = std::stof(line[8].substr(0, 6).c_str());
-      grupoVotos.fuzzyfication(votos, variables);
+      const float votes = std::stof(line[8].substr(0, 6).c_str());
+      grupoVotos.fuzzyfication(votes, variables);
 
-      std::cout << name << "\t" << cuisine << "\t" << cost << "\t" << rating << "\t" << votos << "\t";
+      std::cout << name << "\t" << cuisine << "\t" << cost << "\t" << rating << "\t" << votes << "\t";
 
       ruleAND(variables, "Cheap", "G", "A");
       ruleAND(variables, "Very Cheap", "G", "A");
