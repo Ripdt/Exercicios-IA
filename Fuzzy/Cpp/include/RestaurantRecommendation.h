@@ -7,8 +7,10 @@ class RestaurantRecommendation : public Fuzzyficator
 {
 public:
     RestaurantRecommendation() = default;
+    virtual ~RestaurantRecommendation() = default;
 
-    void fuzzyfication() const override;
+private:
+    void readSpreadsheet() override;
 };
 
 #endif

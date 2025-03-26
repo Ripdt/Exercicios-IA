@@ -1,11 +1,12 @@
 #include "RestaurantRecommendation.h"
 
+#include "TablePrinter.h"
 #include "VariableGroup.h"
 #include "Utils.h"
 
 #include <iostream>
 
-void RestaurantRecommendation::fuzzyfication() const
+void RestaurantRecommendation::readSpreadsheet()
 {
   VariableGroup costGroup;
   costGroup.add(FuzzyVariable("Very Cheap", 0, 0, 10, 20));
@@ -34,7 +35,11 @@ void RestaurantRecommendation::fuzzyfication() const
 
   try
   {
-    std::cout << "Nome\t\t\tCozinha\t\t\tCusto\tRating\tVotos\tNA\tA\tMA\tScore" << std::endl;
+    TablePrinter restaurantTable(
+      { "Nome", "Cozinha", "Custo", "Rating", "Votos"},
+      { 23, 23, 9, 9, 9}
+    );
+    restaurantTable.printHeader();
     typedef std::vector<std::vector<std::string>> Spreadsheet;
     const Spreadsheet &spreadsheet = Utils::readCSV("../../restaurantes_filtrados.csv");
     for (Spreadsheet::const_iterator it = spreadsheet.begin() + 1; it != spreadsheet.end(); ++it)
@@ -56,8 +61,6 @@ void RestaurantRecommendation::fuzzyfication() const
 
       const float votes = std::stof(line[8].substr(0, 6).c_str());
       grupoVotos.fuzzyfication(votes, variables);
-
-      std::cout << name << "\t" << cuisine << "\t" << cost << "\t" << rating << "\t" << votes << "\t";
 
       ruleAND(variables, "Cheap", "G", "A");
       ruleAND(variables, "Very Cheap", "G", "A");
@@ -85,7 +88,9 @@ void RestaurantRecommendation::fuzzyfication() const
 
       const float score = (NA * 1.5f + A * 7.0f + VA * 9.5f) / (NA + A + VA);
 
-      std::cout << std::to_string(NA).substr(0,6) << "\t" << std::to_string(A).substr(0, 6) << "\t" << std::to_string(VA).substr(0, 6) << "\t" << score << std::endl;
+      restaurantTable.printRow(name, cuisine, cost, rating, votes);
+
+      results.push_back(Result(name, score, NA, A, VA));
     }
   }
   catch (...)

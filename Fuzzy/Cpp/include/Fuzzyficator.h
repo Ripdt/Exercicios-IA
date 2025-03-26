@@ -4,12 +4,31 @@
 #include <string>
 #include <unordered_map>
 
+class Result
+{
+public:
+  Result(
+    const std::string& _name,
+    const float _score,
+    const float _nonAtractiveScore,
+    const float _atractiveScore,
+    const float _veryAtractiveScore
+  );
+
+  bool operator<(
+    const Result& other
+    ) const;
+
+  std::string name;
+  float score, nonAtractiveScore, atractiveScore, veryAtractiveScore;
+};
+
 class Fuzzyficator
 {
 public:
     Fuzzyficator() = default;
 
-    virtual void fuzzyfication() const = 0;
+    void fuzzyfication();
 
 protected:
     void ruleAND(
@@ -23,6 +42,13 @@ protected:
         const std::string &var1,
         const std::string &var2,
         const std::string &varr) const;
+
+    std::vector<Result> results;
+
+private:
+  virtual void readSpreadsheet() = 0;
+
+  void printResults();
 };
 
 #endif
