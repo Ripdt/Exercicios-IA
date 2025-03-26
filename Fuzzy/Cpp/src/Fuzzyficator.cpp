@@ -55,19 +55,12 @@ void Fuzzyficator::printResults()
   TablePrinter resultsTable({ "Name", "NA", "A", "VA", "Score" }, { 32, 9, 9, 9, 9 });
   resultsTable.printHeader();
 
-  //for (size_t i = 0; i != 50; i++) {
-  //  const Result& result = results[i];
-  //  resultsTable.printRow(result.name, result.nonAtractiveScore, result.atractiveScore, result.veryAtractiveScore, result.score);
-  //}
-  //for (const Result& result : results) {
-  //  if (result.score != 10) break;
-  //  resultsTable.printRow(result.name, result.nonAtractiveScore, result.atractiveScore, result.veryAtractiveScore, result.score);
-  //}
-
-  //  resultsTable.printRow(result.name, result.nonAtractiveScore, result.atractiveScore, result.veryAtractiveScore, result.score);
-  //}
-  for (const Result& result : results)
+  for (const Result& result : results) {
+    if (result.score != 10) break;
     resultsTable.printRow(result.name, result.nonAtractiveScore, result.atractiveScore, result.veryAtractiveScore, result.score);
+  }
+  //for (const Result& result : results)
+  //  resultsTable.printRow(result.name, result.nonAtractiveScore, result.atractiveScore, result.veryAtractiveScore, result.score);
 }
 
 void Fuzzyficator::ruleAND(

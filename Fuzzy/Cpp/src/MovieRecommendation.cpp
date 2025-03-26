@@ -29,11 +29,17 @@ void MovieRecommendation::initializeGroups()
   ratingGroup.add(FuzzyVariable("Very Good - Rating", 7.5f, 8.2f, 9.0f, 9.5f));
   ratingGroup.add(FuzzyVariable("Excelent - Rating", 9.0f, 9.5f, 10.0f, 10.0f));
 
-  genreGroup.add(FuzzyVariable("Very Low Interest - 1st Genre", 0, 0, 1.5, 2));
-  genreGroup.add(FuzzyVariable("Low Interest - 1st Genre", 1, 2, 2.5, 4));
-  genreGroup.add(FuzzyVariable("Medium Interest - 1st Genre", 3.5, 4, 6, 7));
-  genreGroup.add(FuzzyVariable("High Interest - 1st Genre", 6.5, 7, 8, 9));
-  genreGroup.add(FuzzyVariable("Very High Interest - 1st Genre", 8.5, 9.5, 10, 10));
+  genreGroup.add(FuzzyVariable("Very Low Interest - Genre", 0, 0, 1.5, 2));
+  genreGroup.add(FuzzyVariable("Low Interest - Genre", 1, 2, 2.5, 4));
+  genreGroup.add(FuzzyVariable("Medium Interest - Genre", 3.5, 4, 6, 7));
+  genreGroup.add(FuzzyVariable("High Interest - Genre", 6.5, 7, 8, 9));
+  genreGroup.add(FuzzyVariable("Very High Interest - Genre", 8.5, 9.5, 10, 10));
+
+  releaseYearGroup.add(FuzzyVariable("Very Old - Release Year", 1900, 1900, 1950, 1960));
+  releaseYearGroup.add(FuzzyVariable("Old - Release Year", 1950, 1960, 1970, 1980));
+  releaseYearGroup.add(FuzzyVariable("Medium - Release Year", 1975, 1995, 2005, 2015));
+  releaseYearGroup.add(FuzzyVariable("Recent - Release Year", 2010, 2015, 2020, 2025));
+  releaseYearGroup.add(FuzzyVariable("Very Recent - Release Year", 2020, 2025, 2030, 2030));
 }
 
 void MovieRecommendation::readSpreadsheet()
@@ -62,8 +68,8 @@ void MovieRecommendation::readSpreadsheet()
   };
 
   TablePrinter movieTable(
-    { "Name", "Popularity", "Duration", "Rating", "VotesQtd", "Genres" },
-    { 23, 11, 9, 9, 9, 23 }
+    { "Name", "Year", "Rating", "VotesQtd", "Genres" },
+    { 23, 5, 9, 9, 23 }
   );
   movieTable.printHeader();
 
@@ -76,7 +82,7 @@ void MovieRecommendation::readSpreadsheet()
       const std::vector<std::string> &line = *it;
       if (line.size() <= 20) continue;
 
-      float popularity, runtime, rating, qtdVotes, genreQuantitative = 0;
+      float year, rating, qtdVotes, genreQuantitative = 0;
 
       try {
         std::string name = line[18].substr(0, 23);
@@ -93,12 +99,13 @@ void MovieRecommendation::readSpreadsheet()
         }
         genreQuantitative /= i;
 
-        popularity = std::stof(line[9].substr(0, 6).c_str());
-        runtime = std::stof(line[14].c_str());
         rating = std::stof(line[19].c_str());
         qtdVotes = std::stof(line[20].c_str());
 
-        movieTable.printRow(name, popularity, runtime, rating, qtdVotes, line[2]);
+        const std::string releaseDate = line[12].substr(0, 4);
+        year = std::stof(releaseDate);
+
+        movieTable.printRow(name, year, rating, qtdVotes, line[2]);
       }
       catch (...) {
         continue;
@@ -109,6 +116,7 @@ void MovieRecommendation::readSpreadsheet()
       votesQuantityGroup.fuzzyfication(qtdVotes, variables);
       ratingGroup.fuzzyfication(rating, variables);
       genreGroup.fuzzyfication(genreQuantitative, variables);
+      releaseYearGroup.fuzzyfication(year, variables);
 
       applyRules(variables);
 
@@ -133,61 +141,92 @@ void MovieRecommendation::applyRules(
   std::unordered_map<std::string, float>& variables
 ) const
 {
+  // Release Year X QtdVotes
+  ruleAND(variables, "Very Old - Release Year", "Very Low - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Very Old - Release Year", "Low - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Very Old - Release Year", "Medium - QtdVotes", "Votes_High");
+  ruleAND(variables, "Very Old - Release Year", "High - QtdVotes", "Votes_VeryHigh");
+  ruleAND(variables, "Very Old - Release Year", "Very High - QtdVotes", "Votes_VeryHigh");
+
+  ruleAND(variables, "Old - Release Year", "Very Low - QtdVotes", "Votes_Low");
+  ruleAND(variables, "Old - Release Year", "Low - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Old - Release Year", "Medium - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Old - Release Year", "High - QtdVotes", "Votes_High");
+  ruleAND(variables, "Old - Release Year", "Very High - QtdVotes", "Votes_VeryHigh");
+
+  ruleAND(variables, "Medium - Release Year", "Very Low - QtdVotes", "Votes_Low");
+  ruleAND(variables, "Medium - Release Year", "Low - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Medium - Release Year", "Medium - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Medium - Release Year", "High - QtdVotes", "Votes_High");
+  ruleAND(variables, "Medium - Release Year", "Very High - QtdVotes", "Votes_VeryHigh");
+
+  ruleAND(variables, "Recent - Release Year", "Very Low - QtdVotes", "Votes_VeryLow");
+  ruleAND(variables, "Recent - Release Year", "Low - QtdVotes", "Votes_Low");
+  ruleAND(variables, "Recent - Release Year", "Medium - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "Recent - Release Year", "High - QtdVotes", "Votes_High");
+  ruleAND(variables, "Recent - Release Year", "Very High - QtdVotes", "Votes_VeryHigh");
+
+  ruleAND(variables, "New - Release Year", "Very Low - QtdVotes", "Votes_VeryLow");
+  ruleAND(variables, "New - Release Year", "Low - QtdVotes", "Votes_VeryLow");
+  ruleAND(variables, "New - Release Year", "Medium - QtdVotes", "Votes_Medium");
+  ruleAND(variables, "New - Release Year", "High - QtdVotes", "Votes_High");
+  ruleAND(variables, "New - Release Year", "Very High - QtdVotes", "Votes_High");
+
   // Rating X QtdVotes
-  ruleAND(variables, "Very Low - Rating", "Very Low - QtdVotes", "NA");
-  ruleAND(variables, "Very Low - Rating", "Low - QtdVotes", "NA");
-  ruleAND(variables, "Very Low - Rating", "Medium - QtdVotes", "NA");
-  ruleAND(variables, "Very Low - Rating", "High - QtdVotes", "NA");
-  ruleAND(variables, "Very Low - Rating", "Very High - QtdVotes", "NA");
+  ruleAND(variables, "Very Low - Rating", "Votes_VeryLow", "NA");
+  ruleAND(variables, "Very Low - Rating", "Votes_Low", "NA");
+  ruleAND(variables, "Very Low - Rating", "Votes_Medium", "NA");
+  ruleAND(variables, "Very Low - Rating", "Votes_High", "NA");
+  ruleAND(variables, "Very Low - Rating", "Votes_VeryHigh", "NA");
 
-  ruleAND(variables, "Low - Rating", "Very Low - QtdVotes", "NA");
-  ruleAND(variables, "Low - Rating", "Low - QtdVotes", "NA");
-  ruleAND(variables, "Low - Rating", "Medium - QtdVotes", "NA");
-  ruleAND(variables, "Low - Rating", "High - QtdVotes", "NA");
-  ruleAND(variables, "Low - Rating", "Very High - QtdVotes", "NA");
+  ruleAND(variables, "Low - Rating", "Votes_VeryLow", "NA");
+  ruleAND(variables, "Low - Rating", "Votes_Low", "NA");
+  ruleAND(variables, "Low - Rating", "Votes_Medium", "NA");
+  ruleAND(variables, "Low - Rating", "Votes_High", "NA");
+  ruleAND(variables, "Low - Rating", "Votes_VeryHigh", "NA");
 
-  ruleAND(variables, "Medium - Rating", "Very Low - QtdVotes", "NA");
-  ruleAND(variables, "Medium - Rating", "Low - QtdVotes", "NA");
-  ruleAND(variables, "Medium - Rating", "Medium - QtdVotes", "A");
-  ruleAND(variables, "Medium - Rating", "High - QtdVotes", "A");
-  ruleAND(variables, "Medium - Rating", "Very High - QtdVotes", "NA");
+  ruleAND(variables, "Medium - Rating", "Votes_VeryLow", "NA");
+  ruleAND(variables, "Medium - Rating", "Votes_Low", "NA");
+  ruleAND(variables, "Medium - Rating", "Votes_Medium", "A");
+  ruleAND(variables, "Medium - Rating", "Votes_High", "A");
+  ruleAND(variables, "Medium - Rating", "Votes_VeryHigh", "NA");
 
-  ruleAND(variables, "Good - Rating", "Very Low - QtdVotes", "NA");
-  ruleAND(variables, "Good - Rating", "Low - QtdVotes", "NA");
-  ruleAND(variables, "Good - Rating", "Medium - QtdVotes", "NA");
-  ruleAND(variables, "Good - Rating", "High - QtdVotes", "A");
-  ruleAND(variables, "Good - Rating", "Very High - QtdVotes", "A");
+  ruleAND(variables, "Good - Rating", "Votes_VeryLow", "NA");
+  ruleAND(variables, "Good - Rating", "Votes_Low", "NA");
+  ruleAND(variables, "Good - Rating", "Votes_Medium", "NA");
+  ruleAND(variables, "Good - Rating", "Votes_High", "A");
+  ruleAND(variables, "Good - Rating", "Votes_VeryHigh", "A");
 
-  ruleAND(variables, "Very Good - Rating", "Very Low - QtdVotes", "NA");
-  ruleAND(variables, "Very Good - Rating", "Low - QtdVotes", "NA");
-  ruleAND(variables, "Very Good - Rating", "Medium - QtdVotes", "A");
-  ruleAND(variables, "Very Good - Rating", "High - QtdVotes", "A");
-  ruleAND(variables, "Very Good - Rating", "Very High - QtdVotes", "VA");
+  ruleAND(variables, "Very Good - Rating", "Votes_VeryLow", "NA");
+  ruleAND(variables, "Very Good - Rating", "Votes_Low", "NA");
+  ruleAND(variables, "Very Good - Rating", "Votes_Medium", "A");
+  ruleAND(variables, "Very Good - Rating", "Votes_High", "A");
+  ruleAND(variables, "Very Good - Rating", "Votes_VeryHigh", "VA");
 
-  ruleAND(variables, "Excelent - Rating", "Very Low - QtdVotes", "A");
-  ruleAND(variables, "Excelent - Rating", "Low - QtdVotes", "A");
-  ruleAND(variables, "Excelent - Rating", "Medium - QtdVotes", "A");
-  ruleAND(variables, "Excelent - Rating", "High - QtdVotes", "VA");
-  ruleAND(variables, "Excelent - Rating", "Very High - QtdVotes", "VA");
+  ruleAND(variables, "Excelent - Rating", "Votes_VeryLow", "A");
+  ruleAND(variables, "Excelent - Rating", "Votes_Low", "A");
+  ruleAND(variables, "Excelent - Rating", "Votes_Medium", "A");
+  ruleAND(variables, "Excelent - Rating", "Votes_High", "VA");
+  ruleAND(variables, "Excelent - Rating", "Votes_VeryHigh", "VA");
 
   // Genre X Rating
-  ruleAND(variables, "Very Low Interest - 1st Genre", "NA", "NA");
-  ruleAND(variables, "Very Low Interest - 1st Genre", "A", "NA");
-  ruleAND(variables, "Very Low Interest - 1st Genre", "VA", "A");
+  ruleAND(variables, "Very Low Interest - Genre", "NA", "NA");
+  ruleAND(variables, "Very Low Interest - Genre", "A", "NA");
+  ruleAND(variables, "Very Low Interest - Genre", "VA", "A");
 
-  ruleAND(variables, "Low Interest - 1st Genre", "NA", "NA");
-  ruleAND(variables, "Low Interest - 1st Genre", "A", "NA");
-  ruleAND(variables, "Low Interest - 1st Genre", "VA", "A");
+  ruleAND(variables, "Low Interest - Genre", "NA", "NA");
+  ruleAND(variables, "Low Interest - Genre", "A", "NA");
+  ruleAND(variables, "Low Interest - Genre", "VA", "A");
 
-  ruleAND(variables, "Medium Interest - 1st Genre", "NA", "NA");
-  ruleAND(variables, "Medium Interest - 1st Genre", "A", "NA");
-  ruleAND(variables, "Medium Interest - 1st Genre", "VA", "A");
+  ruleAND(variables, "Medium Interest - Genre", "NA", "NA");
+  ruleAND(variables, "Medium Interest - Genre", "A", "NA");
+  ruleAND(variables, "Medium Interest - Genre", "VA", "A");
 
-  ruleAND(variables, "High Interest - 1st Genre", "NA", "NA");
-  ruleAND(variables, "High Interest - 1st Genre", "A", "A");
-  ruleAND(variables, "High Interest - 1st Genre", "VA", "VA");
+  ruleAND(variables, "High Interest - Genre", "NA", "NA");
+  ruleAND(variables, "High Interest - Genre", "A", "A");
+  ruleAND(variables, "High Interest - Genre", "VA", "VA");
 
-  ruleAND(variables, "Very High Interest - 1st Genre", "NA", "A");
-  ruleAND(variables, "Very High Interest - 1st Genre", "A", "VA");
-  ruleAND(variables, "Very High Interest - 1st Genre", "VA", "VA");
+  ruleAND(variables, "Very High Interest - Genre", "NA", "A");
+  ruleAND(variables, "Very High Interest - Genre", "A", "VA");
+  ruleAND(variables, "Very High Interest - Genre", "VA", "VA");
 }
