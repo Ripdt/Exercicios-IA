@@ -16,11 +16,10 @@ private:
     void initializeGroups();
 
     void applyRules(
-      std::unordered_map<std::string, float>& variables,
-      const bool hasSecondGenre
+      std::unordered_map<std::string, float>& variables
     ) const;
 
-    VariableGroup votesQuantityGroup, ratingGroup, runtimeGroup, popularityGroup, releaseYearGroup, firstGenreGroup, secondGenreGroup;
+    VariableGroup votesQuantityGroup, ratingGroup, popularityGroup, releaseYearGroup, genreGroup;
 };
 
 #endif
