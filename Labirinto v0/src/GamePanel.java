@@ -2,25 +2,19 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 
-import javax.swing.*;
-import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 import java.awt.image.*;
-import javax.imageio.ImageIO;
 
 
 public class GamePanel extends Canvas implements Runnable
 {
+private static final long serialVersionUID = 1L;
 private static final int PWIDTH = 960;
 private static final int PHEIGHT = 800;
 private Thread animator;
 private boolean running = false;
-private boolean gameOver = false; 
 
 
 int FPS,SFPS;
@@ -252,7 +246,6 @@ public GamePanel()
 	mapa = new Mapa_Grid(100,100,ntileW, ntileH);
 	mapa.loadmapfromimage("/imagemlabirinto1000.png");
 
-	//buscador = new BuscadorEmProfundidade(mapa);
 	buscador = new BuscadorEmAEstrela(mapa);
 	
 } // end of GamePanel()
@@ -265,8 +258,6 @@ private void processaNovoCaminho() {
         int y = caminho[i * 2 + 1];
         caminhoAPercorrer.add(new Point(x, y));
     }
-    
-    Collections.reverse(caminhoAPercorrer);
 }
 
 public void startGame()

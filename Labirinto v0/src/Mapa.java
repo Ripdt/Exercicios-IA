@@ -41,7 +41,6 @@ public  class Mapa {
 	    		
 	    		
 	    	
-	    		int Versao = data.readInt(); // lê Versao
 	        	Largura = ReadCInt(data);    // lê Largura
 	        	Altura = ReadCInt(data);	// lê Largura
 	        	
@@ -70,9 +69,6 @@ public  class Mapa {
 	            int BytesPorTiles =  ReadCInt(data); // lê numero de bytes por tile;
 	            
 	           	System.out.println(" BytesPorTiles "+BytesPorTiles);
-	           	
-	            int vago1 =  ReadCInt(data); // lê vago;
-	            int vago2 =  ReadCInt(data); // lê vago;            
 	            
 	        	mapa = new int[Altura][Largura];
 	        	mapa2 = new int[Altura][Largura];
@@ -249,13 +245,12 @@ public  class Mapa {
 	    }
 
 	 public int ReadCInt(DataInputStream data) throws IOException{
-	        int dado;
-	    	int b1 = data.readByte();
+	        int b1 = data.readByte();
 	    	int b2 = data.readByte(); 
 	    	int b3 = data.readByte(); 
 	    	int b4 = data.readByte();                     	
 	    	
-	    	return dado = ((int)b1&0x00ff)|(((int)b2&0x00ff)<<8)|(((int)b3&0x00ff)<<16)|(((int)b4&0x00ff)<<24);            	    	
+	    	return ((int)b1&0x00ff)|(((int)b2&0x00ff)<<8)|(((int)b3&0x00ff)<<16)|(((int)b4&0x00ff)<<24);            	    	
 	    }
 	
 }

@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 public class BuscadorEmAEstrela extends BuscadorMelhorCaminho {
@@ -59,7 +60,9 @@ public class BuscadorEmAEstrela extends BuscadorMelhorCaminho {
     		do {
     			caminhoNodos.add(atual);
     			atual = atual.pai;
-    		} while (atual != null) ;
+    		} while (atual != null);
+    		
+    	    Collections.reverse(caminhoNodos);
     		
             caminho = new int[caminhoNodos.size() * 2];
             int i = 0;

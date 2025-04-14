@@ -1,13 +1,14 @@
 import javax.swing.*;
 
 import java.awt.*;
-import java.awt.event.*;
 
 
 public class Main extends JFrame
 {
 
-   private GamePanel gp;
+   private static final long serialVersionUID = 1L;
+
+private GamePanel gp;
    
    int mousecontext = 0;
 
