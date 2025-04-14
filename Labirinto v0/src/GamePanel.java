@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -187,6 +188,7 @@ public GamePanel()
 					);
 					
 					caminho = buscador.getCaminho();
+					processaNovoCaminho();
 
 
 					long timefin = System.currentTimeMillis() - timeini;
@@ -241,7 +243,7 @@ public GamePanel()
 		}
 	});
 
-	meuHeroi = new MeuAgente(10, 10, Color.blue);
+	meuHeroi = new MeuAgente(10, 10, Color.RED);
 	
 	listadeagentes.add(meuHeroi);
 	
@@ -254,6 +256,18 @@ public GamePanel()
 	buscador = new BuscadorEmAEstrela(mapa);
 	
 } // end of GamePanel()
+
+
+private void processaNovoCaminho() {
+    caminhoAPercorrer.clear();
+    for (int i = 0; i < caminho.length / 2; i++) {
+        int x = caminho[i * 2];
+        int y = caminho[i * 2 + 1];
+        caminhoAPercorrer.add(new Point(x, y));
+    }
+    
+    Collections.reverse(caminhoAPercorrer);
+}
 
 public void startGame()
 // initialise and start the thread
@@ -310,7 +324,9 @@ public void run()
 System.exit(0); // so enclosing JFrame/JApplet exits
 } // end of run()
 
+LinkedList<Point> caminhoAPercorrer = new LinkedList<>();
 int timerfps = 0;
+
 private void gameUpdate(long DiffTime)
 { 
 	
@@ -345,6 +361,31 @@ private void gameUpdate(long DiffTime)
 	for(int i = 0;i < listadeagentes.size();i++){
 		  listadeagentes.get(i).SimulaSe((int)DiffTime);
 	}
+	
+	if (!caminhoAPercorrer.isEmpty()) {
+	    Point destino = caminhoAPercorrer.peek();
+
+	    float destinoPx = destino.x * 16;
+	    float destinoPy = destino.y * 16;
+
+	    float dx = destinoPx - meuHeroi.X;
+	    float dy = destinoPy - meuHeroi.Y;
+
+	    float distancia = (float)Math.sqrt(dx * dx + dy * dy);
+
+	    float velocidade = 2.5f * (DiffTime / 16f); // pixels por atualização (~160ms por tile)
+
+	    if (distancia < 1.0f) {
+	        // Chegou ao tile de destino
+	        meuHeroi.X = destinoPx;
+	        meuHeroi.Y = destinoPy;
+	        caminhoAPercorrer.poll(); // avança para o próximo tile
+	    } else {
+	        // Move em direção ao próximo tile
+	        meuHeroi.X += (dx / distancia) * velocidade;
+	        meuHeroi.Y += (dy / distancia) * velocidade;
+	    }
+	}
 }
 
 private void gameRender(Graphics2D dbg)
@@ -363,10 +404,6 @@ private void gameRender(Graphics2D dbg)
 		System.out.println("Erro ao desenhar mapa");
 	}
 	
-	for(int i = 0;i < listadeagentes.size();i++){
-	  listadeagentes.get(i).DesenhaSe(dbg, mapa.MapX, mapa.MapY);
-	}
-	
 	for (Integer nxy : buscador.getNodosPercorridos()) {
 	    int px = nxy % 1000;
 	    int py = nxy / 1000;
@@ -378,19 +415,21 @@ private void gameRender(Graphics2D dbg)
 
 	
 	if(caminho!=null){
-		
 		try {
-			if(caminho!=null){
-				for(int i = 0; i < caminho.length/2;i++){
-					int nx = caminho[i*2];
-					int ny = caminho[i*2+1];
-					
-					dbg.setColor(Color.BLUE);
-					dbg.fillRect(nx*16-mapa.MapX, ny*16-mapa.MapY, 16, 16);
-				}
+			for(int i = 0; i < caminho.length/2;i++){
+				int nx = caminho[i*2];
+				int ny = caminho[i*2+1];
+				
+				dbg.setColor(Color.BLUE);
+				dbg.fillRect(nx*16-mapa.MapX, ny*16-mapa.MapY, 16, 16);
 			}
-		}catch (Exception e) {
 		}
+		catch (Exception e) {
+		}
+	}
+	
+	for(int i = 0;i < listadeagentes.size();i++){
+	  listadeagentes.get(i).DesenhaSe(dbg, mapa.MapX, mapa.MapY);
 	}
 	
 	dbg.setTransform(trans);

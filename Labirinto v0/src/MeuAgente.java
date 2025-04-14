@@ -10,8 +10,8 @@ public class MeuAgente extends Agente {
 	
 	int estado = 0;
 	
-	double oldx = 0;
-	double oldy = 0;
+	float oldx = 0;
+	float oldy = 0;
 	
 	int timeria = 0;
 	
@@ -68,11 +68,7 @@ public class MeuAgente extends Agente {
 		// TODO Auto-generated method stub
 		dbg.setColor(color);
 		
-		dbg.drawOval((int)(X-10)-XMundo, (int)(Y-10)-YMundo, 20, 20);
-		
-		double linefx = X + 10*Math.cos(ang);
-		double linefy = Y + 10*Math.sin(ang);dbg.drawLine((int)X-XMundo,(int)Y-YMundo, (int)linefx-XMundo, (int)linefy-YMundo);
-	
+		dbg.fillOval((int)(X-10)-XMundo, (int)(Y-10)-YMundo, 20, 20);
 	}
 
 	public void calculaIA(int DiffTime){
